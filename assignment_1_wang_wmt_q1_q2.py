@@ -82,9 +82,10 @@ def average_profit_per_trade(ticker_data, threshold=0):
 
 def main():
     try:
-        # Create ticker data   
+        # Create ticker data from csv without having to read lines  
         ticker_data = genfromtxt('./{}.csv'.format(ticker), delimiter=',', dtype=str)
-        trading_strategy_1, trading_strategy_2, total_trading_strategy, trading_strategy_1_per_share, trading_strategy_2_per_share, total_trading_strategy_per_share = trade_with_threshold(ticker_data)
+        trading_strategy_1, trading_strategy_2, total_trading_strategy, trading_strategy_1_per_share, trading_strategy_2_per_share, total_trading_strategy_per_share = \
+            trade_with_threshold(ticker_data)
         # Question 1
         # Sum all the pnls and divide by number of days
         sum_pnl = np.add(np.sum(trading_strategy_1), np.sum(trading_strategy_2))
