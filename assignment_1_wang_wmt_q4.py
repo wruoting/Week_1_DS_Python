@@ -16,18 +16,22 @@ def main():
     try:
         # Create ticker data   
         ticker_data = genfromtxt('./{}.csv'.format(ticker), delimiter=',', dtype=str)
-        # Question 3
+        # Question 4
         x_data = np.arange(0, 10.01, 0.1)
-        y_data = deque()
+        y_data_long = deque()
+        y_data_short = deque()
         print('Plotting over 100 points for threshold, please hold as this takes a few seconds')
         for threshold in x_data:
-            y_data.append(average_profit_per_trade(ticker_data, threshold=threshold))
-        y_data = np.array(y_data)
-        plt.plot(x_data, y_data, label='P/L vs. Threshold to trade')
+            y_data_long.append(average_profit_per_trade(ticker_data, strategy='long', threshold=threshold))
+            y_data_short.append(average_profit_per_trade(ticker_data, strategy='short', threshold=threshold))
+        y_data_long = np.array(y_data_long)
+        y_data_short = np.array(y_data_short)
+        plt.plot(x_data, y_data_long, label='Long')
+        plt.plot(x_data, y_data_short, label='Short')
         plt.legend()
         plt.xlabel('Threshold for Trading (%)')
         plt.ylabel('Average Profit per day ($)')
-        plt.savefig('Threshold Trading Question 3')
+        plt.savefig('Threshold Trading Question 4')
         plt.show()
 
     except Exception as e:

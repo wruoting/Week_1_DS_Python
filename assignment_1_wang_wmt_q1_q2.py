@@ -68,12 +68,19 @@ def trade_with_threshold(ticker_data, threshold=0):
     return trading_strategy_long, trading_strategy_short, trading_strategy_total
 
 
-def average_profit_per_trade(ticker_data, threshold=0):
+def average_profit_per_trade(ticker_data, strategy='total', threshold=0):
     trading_strategy_long, trading_strategy_short, trading_strategy_total = trade_with_threshold(ticker_data, threshold=threshold)
-    sum_pnl = np.sum(trading_strategy_total)
-    num_days =np.size(trading_strategy_total)
-    return np.round(np.divide(sum_pnl, num_days), 2)
+    if strategy == 'total':
+        sum_pnl = np.sum(trading_strategy_total)
+        num_days = np.size(trading_strategy_total)
+    elif strategy == 'long':
+        sum_pnl = np.sum(trading_strategy_long)
+        num_days = np.size(trading_strategy_long)
+    elif strategy == 'short':
+        sum_pnl = np.sum(trading_strategy_short)
+        num_days = np.size(trading_strategy_short)
 
+    return np.round(np.divide(sum_pnl, num_days), 2)
 def main():
     try:
         # Create ticker data from csv without having to read lines  
