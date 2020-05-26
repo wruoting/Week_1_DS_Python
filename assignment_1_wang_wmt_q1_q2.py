@@ -11,12 +11,27 @@ from collections import deque
 ticker='WMT'
 
 def process_adj_open(row, previous_row):
+    """
+    row: np.array. The current row of data.
+    previous_row: np.array. The previous row of data.
+    returns: Percentage as a float value, eg. 10 for 10%
+    """
     # Subtract next open from adj_close
     open_current_day = row[7].astype(np.float32)
     adj_close = previous_row[12].astype(np.float32)
-    return np.subtract(open_current_day, adj_close)
+    # Percentage difference calculated by (open-adj_close)/adj_close * 100
+    diff = np.subtract(open_current_day, adj_close)
+    percent_diff = np.divide(diff, adj_close)
+    return np.multiply(percent_diff, 100)
 
 def open_to_close(open, adj_close, strat='long', money=100):
+    """
+    open: float
+    adj_close: float
+    strat: string. The strategy employed. default = long
+    money: float. The amount of money at each starting day. default = 100
+    returns: Float. The profit/loss of our day trade. 
+    """
     # Round number of shares to two decimal places
     number_of_shares = np.around(np.divide(money, open), 2)
     # Round profit and loss to two places
@@ -32,11 +47,21 @@ def open_to_close(open, adj_close, strat='long', money=100):
         raise "Strat not defined"
 
 def pnl_per_share(profit, shares):
+    """
+    profit: float
+    shares: float
+    returns: float. Profit/Loss per share
+    """
     # Round pnl per share to 2 places
     return np.round(np.divide(profit, shares), 2)
 
-# Returns profit from close to open given a row
 def open_to_close_rows(row, strat='long', money=100):
+    """
+    row: np.array
+    strat: string. The strategy employed. default = long
+    money: float. The amount of money at each starting day. default = 100
+    returns: Given a row of data, returns a float with the profit/loss of said day
+    """
     # Depending on strat, process adj close to open
     adj_close = row[12].astype(np.float32)
     open_current_day = row[7].astype(np.float32)
@@ -44,20 +69,25 @@ def open_to_close_rows(row, strat='long', money=100):
 
 
 def trade_with_threshold(ticker_data, threshold=0):
+    """
+    ticker_data: np.ndarray. Ticker data.
+    threshold: float. Threshold we will trade at. Below a certain threshold (eg -5% for shorts) or above a certain threshold (eg. 5% for longs)
+    returns: Tuple. trading_strategy_long, trading_strategy_short, trading_strategy_total. Array of profits per day of trade for each of the three strats
+    """
     # Dequeue faster than np array, we can convert back at the end
     trading_strategy_long = deque()
     trading_strategy_short = deque()
     trading_strategy_total = deque()
     for index, row in enumerate(ticker_data):
-        if (index > 1 and index != np.size(ticker_data, axis=0)):
+        if (index > 1 and index < np.size(ticker_data, axis=0)):
             # Trading Strategy Long
-            if(process_adj_open(row, ticker_data[index-1]) > threshold):
+            if(process_adj_open(row, ticker_data[index-1]) >= threshold):
                 profit, number_of_shares = open_to_close_rows(ticker_data[index], strat='long')
                 trading_strategy_long.append(profit)
                 # Append to total strategy profit
                 trading_strategy_total.append(profit)
             # Trading Strategy Short
-            if(process_adj_open(row, ticker_data[index-1]) < threshold):
+            elif(process_adj_open(row, ticker_data[index-1]) < np.negative(threshold)):
                 profit, number_of_shares = open_to_close_rows(ticker_data[index], strat='short')
                 trading_strategy_short.append(profit)
                 # Append to total strategy profit
@@ -69,6 +99,12 @@ def trade_with_threshold(ticker_data, threshold=0):
 
 
 def average_profit_per_trade(ticker_data, strategy='total', threshold=0):
+    """
+    ticker_data: np.ndarray. Ticker data.
+    strategy: string. The strategy employed. default = long
+    threshold: float. Threshold we will trade at. Below a certain threshold (eg -5% for shorts) or above a certain threshold (eg. 5% for longs)
+    returns: Float. Profit/loss per trade
+    """
     trading_strategy_long, trading_strategy_short, trading_strategy_total = trade_with_threshold(ticker_data, threshold=threshold)
     if strategy == 'total':
         sum_pnl = np.sum(trading_strategy_total)
@@ -79,8 +115,11 @@ def average_profit_per_trade(ticker_data, strategy='total', threshold=0):
     elif strategy == 'short':
         sum_pnl = np.sum(trading_strategy_short)
         num_days = np.size(trading_strategy_short)
-
+    # We did not trade for any of these days
+    if num_days == 0:
+        return 0
     return np.round(np.divide(sum_pnl, num_days), 2)
+
 def main():
     try:
         # Create ticker data from csv without having to read lines  
