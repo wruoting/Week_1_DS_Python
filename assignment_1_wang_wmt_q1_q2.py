@@ -62,7 +62,7 @@ def open_to_close_rows(row, strat='long', money=100):
     money: float. The amount of money at each starting day. default = 100
     returns: Given a row of data, returns a float with the profit/loss of said day
     """
-    # Depending on strat, process adj close to open
+    # Depending on strat, process close to open
     close = row[10].astype(np.float32)
     open_current_day = row[7].astype(np.float32)
     return open_to_close(open_current_day, close, strat=strat, money=money)
