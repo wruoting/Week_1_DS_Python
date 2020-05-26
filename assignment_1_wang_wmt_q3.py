@@ -27,7 +27,7 @@ def main():
         plt.legend()
         plt.xlabel('Threshold for Trading (%)')
         plt.ylabel('Average Profit per day ($)')
-        plt.savefig('Threshold Trading Question 3')
+        plt.savefig('Threshold Trading Question 3_{}'.format(ticker))
         plt.show()
 
     except Exception as e:

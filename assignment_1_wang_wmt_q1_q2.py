@@ -16,18 +16,18 @@ def process_adj_open(row, previous_row):
     previous_row: np.array. The previous row of data.
     returns: Percentage as a float value, eg. 10 for 10%
     """
-    # Subtract next open from adj_close
+    # Subtract next open from close, not adj close due to dividend calculations
     open_current_day = row[7].astype(np.float32)
-    adj_close = previous_row[12].astype(np.float32)
-    # Percentage difference calculated by (open-adj_close)/adj_close * 100
-    diff = np.subtract(open_current_day, adj_close)
-    percent_diff = np.divide(diff, adj_close)
+    close = previous_row[10].astype(np.float32)
+    # Percentage difference calculated by (open-close)/close * 100
+    diff = np.subtract(open_current_day, close)
+    percent_diff = np.divide(diff, close)
     return np.multiply(percent_diff, 100)
 
-def open_to_close(open, adj_close, strat='long', money=100):
+def open_to_close(open, close, strat='long', money=100):
     """
     open: float
-    adj_close: float
+    close: float
     strat: string. The strategy employed. default = long
     money: float. The amount of money at each starting day. default = 100
     returns: Float. The profit/loss of our day trade. 
@@ -35,13 +35,13 @@ def open_to_close(open, adj_close, strat='long', money=100):
     # Round number of shares to two decimal places
     number_of_shares = np.around(np.divide(money, open), 2)
     # Round profit and loss to two places
-    pnl = np.around(np.multiply(number_of_shares, adj_close), 2)
+    pnl = np.around(np.multiply(number_of_shares, close), 2)
     # Round to two places for our total
     if strat == 'long':
-        # Spend money at the beginning, make it back in number of shares x adj_close
+        # Spend money at the beginning, make it back in number of shares x close
         return np.round(np.add(np.negative(money), pnl), 2), number_of_shares
     if strat == 'short':
-        # Receive money at the beginning from selling short, spend it to buy shares at end of day shares x adj_close
+        # Receive money at the beginning from selling short, spend it to buy shares at end of day shares x close
         return np.round(np.add(money, np.negative(pnl)), 2), number_of_shares
     else:
         raise "Strat not defined"
@@ -63,9 +63,9 @@ def open_to_close_rows(row, strat='long', money=100):
     returns: Given a row of data, returns a float with the profit/loss of said day
     """
     # Depending on strat, process adj close to open
-    adj_close = row[12].astype(np.float32)
+    close = row[10].astype(np.float32)
     open_current_day = row[7].astype(np.float32)
-    return open_to_close(open_current_day, adj_close, strat=strat, money=money)
+    return open_to_close(open_current_day, close, strat=strat, money=money)
 
 
 def trade_with_threshold(ticker_data, threshold=0):
@@ -134,8 +134,8 @@ def main():
         average_pnl = np.round(np.divide(sum_pnl, num_days), 2)
 
         # Question 2
-        sum_pnl_long = np.sum(trading_strategy_1)
-        sum_pnl_short = np.sum(trading_strategy_2)
+        sum_pnl_long = np.round(np.sum(trading_strategy_1), 2)
+        sum_pnl_short = np.round(np.sum(trading_strategy_2), 2)
 
         print('Daily Profit:')
         print('Longs: {}'.format(trading_strategy_1))
@@ -145,7 +145,7 @@ def main():
         print('Question 2:')
         print('Long position profit: ${}'.format(sum_pnl_long))
         print('Short position profit: ${}'.format(sum_pnl_short))
-        print('The short position profits are higher than the long position profits')
+        print('The long position profits are higher than the short position profits')
 
     except Exception as e:
         print('Failed to read stock data for ticker: {} with exception: {}'.format(ticker, e))
