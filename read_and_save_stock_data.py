@@ -15,7 +15,7 @@ import pandas as pd
 def get_stock(ticker, start_date, end_date, s_window, l_window):
     try:
         df = web.DataReader(ticker, start=start_date, end=end_date, data_source='yahoo')
-        df['Return'] = df['Adj Close'].pct_change()
+        df['Return'] = df['Close'].pct_change()
         df['Return'].fillna(0, inplace = True)
         df['Date'] = df.index
         df['Date'] = pd.to_datetime(df['Date'])
@@ -27,8 +27,8 @@ def get_stock(ticker, start_date, end_date, s_window, l_window):
         df['Weekday'] = df['Date'].dt.day_name()
         df['Week_Number'] = df['Date'].dt.strftime('%U')
         df['Year_Week'] = df['Date'].dt.strftime('%Y-%U')
-        df['Short_MA'] = df['Adj Close'].rolling(window=s_window, min_periods=1).mean()
-        df['Long_MA'] = df['Adj Close'].rolling(window=l_window, min_periods=1).mean()        
+        df['Short_MA'] = df['Close'].rolling(window=s_window, min_periods=1).mean()
+        df['Long_MA'] = df['Close'].rolling(window=l_window, min_periods=1).mean()        
         col_list = ['Date', 'Year', 'Month', 'Day', 'Weekday', 
                     'Week_Number', 'Year_Week', 'Open', 
                     'High', 'Low', 'Close', 'Volume', 'Adj Close',
